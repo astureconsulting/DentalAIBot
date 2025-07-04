@@ -20,7 +20,7 @@ COPY . .
 
 # Use Railway's PORT environment variable (Railway sets this automatically)
 # Railway typically uses port 8080, not 3000
-EXPOSE $PORT
+EXPOSE 5000
 
 # Command to run the application
 # Use the PORT environment variable that Railway provides

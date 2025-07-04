@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dintannklinikk Virtual Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --primary-blue: #1e88e5;
+      --light-blue: #e3f2fd;
+      --dark-blue: #0d47a1;
+      --text-dark: #263238;
+      --text-light: #ffffff;
+      --bubble-radius: 20px;
+      --input-bg: #f5f9ff;
+      --input-border: #90caf9;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin: 0; padding: 0; height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--light-blue) 60%, var(--primary-blue) 100%);
+      color: var(--text-dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .chat-container {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 24px var(--shadow);
+      width: 100%;
+      max-width: 350px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .chat-header {
+      background: var(--primary-blue);
+      color: var(--text-light);
+      padding: 20px 60px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 1px;
+      user-select: none;
+      position: relative;
+    }
+    .status-indicator {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #a5d6f9;
+    }
+   
+    .book-btn {
+      position: absolute;
+      top: 18px;
+      left: 20px;
+      background: var(--dark-blue);
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 58px;
+      margin-left: 190px;
+      box-shadow: 0 4px 12px var(--shadow);
+      transition: background 0.3s;
+      user-select: none;
+    }
+    .book-btn:hover, .book-btn:focus {
+      background: #0b3d91;
+      outline: none;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 20px 16px;
+      overflow-y: auto;
+      background: var(--light-blue);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+    .message {
+      max-width: 80%;
+      padding: 14px 20px;
+      border-radius: var(--bubble-radius);
+      font-size: 15px;
+      line-height: 1.4;
+      box-shadow: 0 2px 6px var(--shadow);
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+    .user-message {
+      background: var(--primary-blue);
+      color: var(--text-light);
+      margin-left: auto;
+      border-bottom-right-radius: 6px;
+      text-align: right;
+    }
+    .ai-message {
+      background: #ffffff;
+      color: var(--text-dark);
+      margin-right: auto;
+      border-bottom-left-radius: 6px;
+      text-align: left;
+    }
+    .ai-message.rtl {
+      direction: rtl;
+      text-align: right;
+    }
+    .lang-switch {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: 2px solid var(--primary-blue);
+      color: var(--primary-blue);
+      border-radius: 16px;
+      padding: 6px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      user-select: none;
+    }
+    .lang-btn.active,
+    .lang-btn:hover {
+      background: var(--primary-blue);
+      color: var(--text-light);
+      outline: none;
+    }
+    .chat-input-container {
+      padding: 16px;
+      background: #fff;
+      border-top: 2px solid var(--primary-blue);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    #promptInput {
+      flex: 1;
+      font-size: 16px;
+      padding: 14px 18px;
+      border-radius: 24px;
+      border: 2px solid var(--input-border);
+      background: var(--input-bg);
+      resize: none;
+      outline: none;
+      color: var(--text-dark);
+      box-shadow: inset 0 1px 4px var(--shadow);
+      transition: border-color 0.3s;
+      min-height: 44px;
+      max-height: 120px;
+    }
+    #promptInput::placeholder {
+      color: #90a4ae;
+      text-align: center;
+    }
+    #promptInput:focus {
+      border-color: var(--primary-blue);
+      background: #f0f7ff;
+    }
+    #sendButton {
+      background: var(--primary-blue);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      cursor: pointer;
+      color: var(--text-light);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+      box-shadow: 0 4px 12px var(--shadow);
+      transition: background 0.3s;
+    }
+    #sendButton:hover:not(:disabled),
+    #sendButton:focus:not(:disabled) {
+      background: var(--dark-blue);
+      outline: none;
+    }
+    #sendButton:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .typing-indicator {
+      display: none;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border-radius: var(--bubble-radius);
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      max-width: 75%;
+      margin-right: auto;
+      font-style: italic;
+      color: #666;
+      user-select: none;
+    }
+    .typing-indicator.active {
+      display: block;
+    }
+    .typing-dots {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-start;
+      margin-top: 4px;
+    }
+    .typing-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--primary-blue);
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+    .typing-dots span:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+    @keyframes typing {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.3);
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px 24px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      position: relative;
+      color: var(--text-dark);
+      animation: popupIn 0.2s cubic-bezier(.4,1.6,.6,1.1);
+      font-size: 15px;
+    }
+    @keyframes popupIn {
+      from { transform: translateY(40px) scale(0.98); opacity: 0; }
+      to { transform: none; opacity: 1; }
+    }
+    .modal-close {
+      position: absolute;
+      right: 18px;
+      top: 14px;
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: var(--primary-blue);
+      cursor: pointer;
+      transition: color 0.2s;
+      user-select: none;
+    }
+    .modal-close:hover, .modal-close:focus {
+      color: var(--dark-blue);
+      outline: none;
+    }
+    form label {
+      font-weight: 600;
+      margin-top: 12px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    form input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1.5px solid #ccc;
+      font-size: 15px;
+      transition: border-color 0.3s;
+    }
+    form input:focus {
+      border-color: var(--primary-blue);
+      outline: none;
+      background: #f0f7ff;
+    }
+    form button[type="submit"] {
+      margin-top: 20px;
+      width: 100%;
+      background: var(--primary-blue);
+      color: white;
+      border: none;
+      padding: 14px;
+      font-weight: 700;
+      font-size: 16px;
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    form button[type="submit"]:hover,
+    form button[type="submit"]:focus {
+      background: var(--dark-blue);
+      outline: none;
+    }
+    #bookingMessage {
+      margin-top: 14px;
+      font-weight: 600;
+      min-height: 20px;
+    }
+    @media (max-width: 480px) {
+      .chat-container {
+        height: 100vh;
+        border-radius: 0;
+        max-width: 100%;
+      }
+      #promptInput {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container" role="main" aria-label="Dintannklinikk Virtual Assistant Chatbot">
+    <header class="chat-header">
+      Dintannklinikk Virtual Assistant
+      <button class="book-btn" id="bookAppointmentBtn" aria-haspopup="dialog" aria-controls="bookingModal" title="Book Appointment">
+        Book Appointment
+      </button>
+      <div class="status-indicator" aria-live="polite">
+        
+    </header>
+
+    <section class="chat-messages" id="chatMessages" aria-live="polite" aria-relevant="additions">
+      <div class="lang-switch" role="group" aria-label="Language switcher">
+        <button class="lang-btn active" id="langEnBtn" aria-pressed="true" aria-label="Switch to English">English</button>
+        <button class="lang-btn" id="langNoBtn" aria-pressed="false" aria-label="Switch to Norwegian">Norsk</button>
+      </div>
+      <div class="ai-message message" id="welcomeMsg" tabindex="0"></div>
+    </section>
+
+    <div class="typing-indicator" id="typingIndicator" aria-live="assertive" aria-atomic="true" aria-label="Typing indicator">
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span>Typing...</span>
+    </div>
+
+    <form class="chat-input-container" onsubmit="event.preventDefault(); handleSubmit();" role="search" aria-label="Chat input form">
+      <textarea
+        id="promptInput"
+        rows="1"
+        placeholder="Type your message..."
+        aria-label="Chat message input"
+        autocomplete="off"
+        required
+      ></textarea>
+      <button id="sendButton" aria-label="Send message" type="submit">
+        &#9658;
+      </button>
+    </form>
+  </div>
+
+  <!-- Booking Modal -->
+  <div class="modal" id="bookingModal" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle" tabindex="-1">
+    <div class="modal-content">
+      <button class="modal-close" id="bookingModalClose" aria-label="Close booking form">&times;</button>
+      <h2 id="bookingModalTitle" style="color: var(--dark-blue); margin-bottom: 16px;">Book an Appointment</h2>
+      <form id="bookingForm" novalidate>
+        <label for="bookingDate">Select Date & Time:</label>
+        <input type="datetime-local" id="bookingDate" name="bookingDate" required min="" />
+        <label for="bookingName">Full Name:</label>
+        <input type="text" id="bookingName" name="bookingName" required placeholder="Your full name" />
+        <label for="bookingPhone">Phone Number:</label>
+        <input type="tel" id="bookingPhone" name="bookingPhone" required placeholder="+47 123 45 678" />
+        <label for="bookingEmail">Email Address:</label>
+        <input type="email" id="bookingEmail" name="bookingEmail" required placeholder="you@example.com" />
+        <button type="submit">Submit</button>
+      </form>
+      <div id="bookingMessage" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script>
+    // Generate or retrieve session_id for the user
+    let sessionId = localStorage.getItem('sessionId');
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      localStorage.setItem('sessionId', sessionId);
+    }
+
+    // Language toggle logic
+    let botLang = 'en';
+
+    const langEnBtn = document.getElementById('langEnBtn');
+    const langNoBtn = document.getElementById('langNoBtn');
+    const welcomeMsg = document.getElementById('welcomeMsg');
+    const chatMessages = document.getElementById('chatMessages');
+    const promptInput = document.getElementById('promptInput');
+    const sendButton = document.getElementById('sendButton');
+    const typingIndicator = document.getElementById('typingIndicator');
+
+    const bookBtn = document.getElementById('bookAppointmentBtn');
+    const bookingModal = document.getElementById('bookingModal');
+    const bookingCloseBtn = document.getElementById('bookingModalClose');
+    const bookingForm = document.getElementById('bookingForm');
+    const bookingMessage = document.getElementById('bookingMessage');
+    const bookingDateInput = document.getElementById('bookingDate');
+
+    const welcomeTexts = {
+      en: "Welcome to Dintannklinikk! How can I assist you today? (You may write in English or Norwegian.)",
+      no: "Velkommen til Dintannklinikk! Hvordan kan jeg hjelpe deg i dag? (Du kan skrive på norsk eller engelsk.)"
+    };
+
+    function setLanguage(lang) {
+      botLang = lang;
+      langEnBtn.classList.toggle('active', lang === 'en');
+      langNoBtn.classList.toggle('active', lang === 'no');
+      langEnBtn.setAttribute('aria-pressed', lang === 'en');
+      langNoBtn.setAttribute('aria-pressed', lang === 'no');
+      renderWelcome();
+      promptInput.focus();
+    }
+
+    langEnBtn.addEventListener('click', () => setLanguage('en'));
+    langNoBtn.addEventListener('click', () => setLanguage('no'));
+
+    function renderWelcome() {
+      welcomeMsg.textContent = welcomeTexts[botLang];
+      welcomeMsg.focus();
+    }
+
+    // Chat message creation
+    function createMessage(content, isUser = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message ' + (isUser ? 'user-message' : 'ai-message');
+
+      // Detect RTL for AI messages (basic check)
+      const rtlChars = /[\u0600-\u06FF\u0750-\u077F\u0590-\u05FF]/;
+      if (!isUser && rtlChars.test(content)) {
+        messageDiv.style.direction = 'rtl';
+        messageDiv.style.textAlign = 'right';
+      } else {
+        messageDiv.style.direction = 'ltr';
+        messageDiv.style.textAlign = 'left';
+      }
+
+      messageDiv.innerHTML = content.replace(/\n/g, '<br>');
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return messageDiv;
+    }
+
+    // Typing indicator
+    function showTyping() {
+      typingIndicator.classList.add('active');
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function hideTyping() {
+      typingIndicator.classList.remove('active');
+    }
+
+    const API_URL = 'http://192.168.100.16:5000/chat';
+
+    async function handleSubmit() {
+      const prompt = promptInput.value.trim();
+      if (!prompt) return;
+      createMessage(prompt, true);
+      promptInput.value = '';
+      promptInput.style.height = 'auto';
+      sendButton.disabled = true;
+      showTyping();
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: prompt, session_id: sessionId })
+        });
+        const data = await response.json();
+        if (data.response) {
+          createMessage(data.response, false);
+        } else {
+          createMessage('Sorry, no response from server.', false);
+        }
+      } catch (error) {
+        createMessage('Sorry, there was an error connecting to the server.', false);
+      } finally {
+        sendButton.disabled = false;
+        hideTyping();
+        promptInput.focus();
+      }
+    }
+
+    // Auto-expand textarea height
+    promptInput.addEventListener('input', () => {
+      promptInput.style.height = 'auto';
+      promptInput.style.height = Math.min(promptInput.scrollHeight, 120) + 'px';
+    });
+
+    // Send on Enter (without Shift)
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    });
+
+    // Booking modal logic
+    function setMinBookingDate() {
+      const now = new Date();
+      now.setMinutes(0, 0, 0);
+      now.setHours(now.getHours() + 1);
+      bookingDateInput.min = now.toISOString().slice(0,16);
+    }
+    setMinBookingDate();
+
+    function openBookingModal() {
+      bookingModal.classList.add('active');
+      bookingModal.focus();
+      bookingMessage.textContent = '';
+      bookingForm.reset();
+      setMinBookingDate();
+    }
+
+    function closeBookingModal() {
+      bookingModal.classList.remove('active');
+    }
+
+    bookBtn.addEventListener('click', openBookingModal);
+    bookingCloseBtn.addEventListener('click', closeBookingModal);
+    bookingModal.addEventListener('click', e => {
+      if (e.target === bookingModal) closeBookingModal();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && bookingModal.classList.contains('active')) {
+        closeBookingModal();
+      }
+    });
+
+    bookingForm.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      if (!bookingForm.checkValidity()) {
+        bookingMessage.style.color = 'red';
+        bookingMessage.textContent = 'Please fill out all fields correctly.';
+        return;
+      }
+
+      const bookingData = {
+        datetime: bookingDateInput.value,
+        name: document.getElementById('bookingName').value.trim(),
+        phone: document.getElementById('bookingPhone').value.trim(),
+        email: document.getElementById('bookingEmail').value.trim()
+      };
+
+      bookingMessage.style.color = '#1e88e5';
+      bookingMessage.textContent = 'Submitting your appointment...';
+
+      try {
+        const res = await fetch('/book-appointment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookingData)
+        });
+
+        if (res.ok) {
+          bookingMessage.style.color = 'green';
+          bookingMessage.textContent = 'Appointment booked successfully! A confirmation email has been sent.';
+          bookingForm.reset();
+          setTimeout(closeBookingModal, 3000);
+        } else {
+          const errorData = await res.json();
+          bookingMessage.style.color = 'red';
+          bookingMessage.textContent = errorData.message || 'Failed to book appointment. Please try again.';
+        }
+      } catch (err) {
+        bookingMessage.style.color = 'red';
+        bookingMessage.textContent = 'Network error. Please try again later.';
+      }
+    });
+
+    // Initial setup
+    window.addEventListener('load', () => {
+      setLanguage('en');
+      promptInput.focus();
+    });
+  </script>
+</body>
+</html>

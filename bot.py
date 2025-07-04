@@ -216,7 +216,7 @@ def detect_language(text):
         r'\bto\b', r'\byou\b', r'\bus\b', r'\bcontact\b', r'\btreatment\b',
         r'\bclinic\b', r'\bi\b', r'\bwe\b', r'\bhe\b', r'\bshe\b', r'\bit\b',
         r'\bwas\b', r'\bwith\b', r'\bfor\b', r'\bhave\b', r'\bnot\b', r'\ban\b',
-        r'\bbut\b'
+        r'\bbut\b', r'\bhy\b'
     ]
 
     # If Norwegian characters present, classify as Norwegian immediately

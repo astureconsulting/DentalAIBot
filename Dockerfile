@@ -25,4 +25,4 @@ EXPOSE 8080
 
 # Command to run the application
 # Use the PORT environment variable that Railway provides
-CMD gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 1 --timeout 120 app:app
+CMD gunicorn --bind 0.0.0.0:${PORT:-8080} bot:app

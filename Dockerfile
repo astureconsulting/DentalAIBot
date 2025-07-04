@@ -24,4 +24,5 @@ EXPOSE 5000
 
 # Command to run the application
 # Use the PORT environment variable that Railway provides
-CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "--workers", "1", "--timeout", "120", "app:app"]
+

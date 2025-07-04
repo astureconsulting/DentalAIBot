@@ -2,8 +2,8 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
 import re
+app = Flask(__name__)
 
-app = Flask(__name__, static_folder="static")
 CORS(app)
 
 GROQ_API_KEY = "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"
@@ -248,9 +248,9 @@ def format_response(text, language="en"):
         text = "\n".join(line.strip() for line in lines if line.strip())
     return text
 
-@app.route("/")
+@app.route('/')
 def index():
-    return send_from_directory(app.static_folder, "index.html")
+    return render_template('index.html')
 
 @app.route("/chat", methods=["POST"])
 def chat():

@@ -6,7 +6,8 @@ app = Flask(__name__)
 
 CORS(app)
 
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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
+"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 SYSTEM_PROMPT_EN = """
